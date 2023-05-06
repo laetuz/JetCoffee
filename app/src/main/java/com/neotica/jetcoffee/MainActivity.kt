@@ -22,12 +22,19 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -58,22 +65,35 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JetCoffeeApp() {
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        Banner()
-        HomeSection(
-            title = stringResource(id = R.string.section_category),
-            content = { CategoryRow() }
-        )
-        HomeSection(
-            title = stringResource(id = R.string.section_favorite_menu),
-            content = { MenuRow(listMenu = dummyMenu) }
-        )
-        HomeSection(
-            title = stringResource(id = R.string.section_best_seller_menu),
-            content = { MenuRow(listMenu = dummyMenuBestSellerMenu) }
-        )
+    Scaffold(
+        bottomBar = { BottomBar() }
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(it)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Banner()
+            HomeSection(
+                title = stringResource(id = R.string.section_category),
+                content = { CategoryRow() }
+            )
+            HomeSection(
+                title = stringResource(id = R.string.section_favorite_menu),
+                Modifier,
+                content = { MenuRow(listMenu = dummyMenu) }
+            )
+            HomeSection(
+                title = stringResource(id = R.string.section_best_seller_menu),
+                Modifier,
+                content = { MenuRow(listMenu = dummyMenuBestSellerMenu) }
+            )
+            StatefulCounter()
+            StatelessResult()
+        }
     }
 }
 
@@ -159,8 +179,58 @@ fun BottomBar(
                 icon = {
                     Icon(imageVector = it.icon, contentDescription = it.title)
                 },
-                label = { Text(text = it.title)}
+                label = { Text(text = it.title) }
             )
+        }
+    }
+}
+
+@Composable
+fun StatefulCounter(modifier: Modifier = Modifier) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.padding(16.dp)
+    ) {
+        var count by rememberSaveable { mutableStateOf(0) }
+        Text("Button clicked $count times:")
+        Button(onClick = { count++ }) {
+            Text("Click me!")
+        }
+    }
+}
+
+@Composable
+fun StatelessCounter(
+    count: Int,           //state
+    onClick: () -> Unit,  //event
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.padding(16.dp)
+    ) {
+        Text("Button clicked $count times:")
+        Button(onClick = { onClick() }) {
+            Text("Click me!")
+        }
+    }
+}
+
+@Composable
+fun StatelessResult() {
+    var count by remember { mutableStateOf(0) }
+    StatelessCounter(count = count, onClick = {
+        if (count==0){count++}else{count*=2}
+    })
+}
+
+@Preview
+@Composable
+fun StatePreview() {
+    JetCoffeeTheme() {
+        Column {
+            StatefulCounter()
+            StatelessResult()
         }
     }
 }
@@ -187,10 +257,12 @@ fun AppPreview() {
 fun AppPreviewNew() {
     JetCoffeeTheme {
         Scaffold(
-            bottomBar = { BottomBar()}
-        ) {padding ->
+            bottomBar = { BottomBar() }
+        ) {
             Column(
-                modifier = Modifier.padding(padding)
+                modifier = Modifier
+                    .padding(it)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Banner()
                 HomeSection(
@@ -209,6 +281,5 @@ fun AppPreviewNew() {
                 )
             }
         }
-
     }
 }
